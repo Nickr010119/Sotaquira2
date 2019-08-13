@@ -1,0 +1,76 @@
+## Desarrollado por Nicolás Rodríguez, Código: 30000022548
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.optimizers import SGD
+from sklearn.model_selection  import  train_test_split 
+
+datos = pd.read_csv('sonar.csv', sep=",")
+print(datos)
+
+X = datos.values[:, 0:60]
+Y = datos.values[:,60]
+
+for i, element in enumerate(Y):
+    if Y[i] == "R":
+        Y[i]=0
+    else:
+        Y[i]=1
+print(Y)
+
+#Grafica
+
+idx0 = np.where(Y==0)
+idx1 = np.where(Y==1)
+
+plt.scatter(X[idx0,0],X[idx0,1],color='red',label='Categoría: R')
+plt.scatter(X[idx1,0],X[idx1,1],color='gray',label='Categoría: M')
+plt.xlabel('$x_1$')
+plt.ylabel('$x_2$')
+plt.title('Datos originales')
+plt.show()
+
+#Test y validación
+
+X_train ,  X_test ,  y_train ,  y_test  =  train_test_split (X ,  Y ,  test_size = 0.25 ,  train_size = 0.75 ) 
+
+#Modelo
+np.random.seed(1)
+input_dim = X_train.shape[1]
+print(input_dim)
+output_dim = 1
+
+modelo = Sequential()
+modelo.add(Dense(output_dim, input_dim = input_dim, activation='sigmoid'))
+
+sgd = SGD(lr=0.2)
+modelo.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
+
+
+iterations = 1000
+batch_size = X_train.shape[0]
+historia = modelo.fit(X_train, y_train, epochs=iterations, batch_size=batch_size, verbose=2)
+
+#Grafica comportamiento
+
+plt.subplot(1,2,1)
+plt.plot(historia.history['loss'])
+plt.ylabel('Pérdida')
+plt.xlabel('Epoch')
+plt.title('Comportamiento de la pérdida')
+
+plt.subplot(1,2,2)
+plt.plot(historia.history['acc'])
+plt.ylabel('Precisión')
+plt.xlabel('Epoch')
+plt.title('Comportamiento de la precisión')
+
+ax = plt.gca()
+ax.yaxis.set_label_position("right")
+ax.yaxis.tick_right()
+
+plt.show()
